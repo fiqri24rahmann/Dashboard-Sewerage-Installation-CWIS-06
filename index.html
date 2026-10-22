@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monitoring Sewerage Installation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<style>
+  :root{
+    --bg:#f4f6f5; --panel:#ffffff; --ink:#1b2a2e; --muted:#5d6e73; --line:#d8dfdd; --accent:#0d6b73;
+    --belum:#8d989c; --sedang:#e59d0e; --selesai:#1e9b57;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#12181a; --panel:#1b2326; --ink:#e5ecea; --muted:#92a2a7; --line:#2c373b; --accent:#58c4cc; }
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);display:flex}
+  aside{width:340px;max-width:100%;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;z-index:1000;overflow:auto}
+  header{padding:18px 18px 14px;border-bottom:1px solid var(--line)}
+  h1{font-size:19px;font-weight:600;margin:0 0 3px;line-height:1.25}
+  header p{margin:0;font-size:13px;color:var(--muted)}
+  .sec{padding:14px 18px;border-bottom:1px solid var(--line)}
+  .sec h2{font-size:14px;font-weight:600;margin:0 0 10px}
+  select{width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+  .row{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:14px;cursor:pointer}
+  .row input{accent-color:var(--accent);width:16px;height:16px;margin:0;flex:none}
+  .row .n{margin-left:auto;color:var(--muted);font-size:12px}
+  .dot{width:12px;height:12px;border-radius:50%;flex:none;border:2px solid #fff;box-shadow:0 0 0 1px var(--line)}
+  .sw{width:14px;height:14px;border-radius:3px;flex:none}
+  .sw.line{height:4px;border-radius:2px}
+  .sw.area{background:transparent!important;border:2px solid}
+  .stat{margin:0 0 14px}
+  .stat:last-child{margin:0}
+  .stat .top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
+  .stat .top span:last-child{color:var(--muted)}
+  .bar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--line)}
+  .bar i{display:block;height:100%}
+  .stat small{display:block;margin-top:4px;font-size:12px;color:var(--muted)}
+  .msg{font-size:13px;color:var(--muted);line-height:1.5}
+  #map{flex:1;height:100%}
+  .leaflet-popup-content{font-family:inherit;font-size:13px;margin:12px 14px;color:#1b2a2e}
+  .leaflet-popup-content h3{margin:0 0 4px;font-size:15px}
+  .badge{display:inline-block;padding:2px 8px;border-radius:10px;color:#fff;font-size:12px;margin-bottom:8px}
+  .leaflet-popup-content table{border-collapse:collapse;width:100%}
+  .leaflet-popup-content td{padding:3px 0;vertical-align:top;border-top:1px solid #e3e7e5}
+  .leaflet-popup-content td:first-child{color:#5d6e73;padding-right:12px;white-space:nowrap}
+  .pop-scroll{max-height:230px;overflow:auto}
+  .zlabel{background:rgba(255,255,255,.85);border:0;box-shadow:none;color:#0d6b73;font-weight:600;font-size:12px;padding:1px 6px}
+  button.fit{margin-top:10px;width:100%;padding:8px;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:6px;font:inherit;cursor:pointer}
+  button.fit:hover{background:var(--accent);color:var(--panel)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  @media (max-width:720px){
+    body{flex-direction:column-reverse}
+    aside{width:100%;height:46%;border-right:0;border-top:1px solid var(--line)}
+    #map{height:54%}
+  }
+</style>
+</head>
+<body>
+<aside>
+  <header>
+    <h1>Monitoring Sewerage Installation</h1>
+    <p id="sub">Memuat data…</p>
+  </header>
+
+  <div class="sec">
+    <h2>Progres pekerjaan</h2>
+    <div id="stats" class="msg">Memuat…</div>
+  </div>
+
+  <div class="sec">
+    <h2>Tampilkan status</h2>
+    <label class="row"><input type="checkbox" data-s="Belum Dikerjakan" checked><span class="dot" style="background:var(--belum)"></span>Belum dikerjakan</label>
+    <label class="row"><input type="checkbox" data-s="Sedang Dikerjakan" checked><span class="dot" style="background:var(--sedang)"></span>Sedang dikerjakan</label>
+    <label class="row"><input type="checkbox" data-s="Selesai" checked><span class="dot" style="background:var(--selesai)"></span>Selesai</label>
+  </div>
+
+  <div class="sec">
+    <h2>Layer</h2>
+    <div id="list" class="msg">Memuat daftar layer…</div>
+    <button class="fit" id="fitAll" hidden>Zoom ke semua layer</button>
+  </div>
+
+  <div class="sec">
+    <h2>Peta dasar</h2>
+    <select id="basemap" aria-label="Peta dasar">
+      <option value="osm">OpenStreetMap</option>
+      <option value="sat">Citra satelit</option>
+      <option value="light">Terang polos</option>
+    </select>
+  </div>
+</aside>
+<div id="map"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+const STATUS = {
+  "Belum Dikerjakan": "#8d989c",
+  "Sedang Dikerjakan": "#e59d0e",
+  "Selesai": "#1e9b57"
+};
+const DEFAULT_STATUS = "Belum Dikerjakan";
+
+// Urutan tumpukan (kecil = di bawah) dan gaya per layer. Layer baru yang tidak
+// terdaftar di sini tetap tampil dengan gaya standar.
+const CONFIG = {
+  batas_zona:         { order: 1, color: "#0d6b73", labelField: "nama", visible: true },
+  batas_rw:           { order: 2, color: "#7b5ea7", visible: false },
+  collecting_pipe:    { order: 3, status: true, weight: 2 },
+  pipe:               { order: 4, status: true, weight: 4, lengthField: "panjang_m" },
+  inspection_chamber: { order: 5, status: true, radius: 4 },
+  manhole:            { order: 6, status: true, radius: 6 }
+};
+const bust = "?t=" + Date.now();
+
+const map = L.map("map").setView([-6.97, 110.46], 14);
+const bases = {
+  osm: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }),
+  sat: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19, attribution: "Esri World Imagery" }),
+  light: L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", { maxZoom: 19, attribution: "© OpenStreetMap, © CARTO" })
+};
+let currentBase = bases.osm.addTo(map);
+document.getElementById("basemap").addEventListener("change", e => {
+  map.removeLayer(currentBase);
+  currentBase = bases[e.target.value].addTo(map);
+  currentBase.bringToBack();
+});
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const statusOf = p => (p && STATUS[p.status_pekerjaan]) ? p.status_pekerjaan : DEFAULT_STATUS;
+const activeStatus = new Set(Object.keys(STATUS));
+const state = [];   // {meta, cfg, data, layer, visible}
+
+function fmtValue(k, v){
+  if (typeof v === "number") return Number.isInteger(v) ? String(v) : String(Math.round(v * 1000) / 1000);
+  if (/^\d{4}-\d{2}-\d{2}T/.test(v)) return new Date(v).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" });
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return new Date(v + "T00:00:00").toLocaleDateString("id-ID", { dateStyle: "medium" });
+  return String(v);
+}
+
+function popupHtml(s, f){
+  const p = f.properties || {};
+  const head = p.kode || (p.mh_hulu ? `${p.mh_hulu} → ${p.mh_hilir || "?"}` : null) || p.nama || (p.nomor_ic ? "IC " + p.nomor_ic : null) || s.meta.title;
+  const skip = new Set(["id", "status_pekerjaan"]);
+  const rows = Object.entries(p)
+    .filter(([k, v]) => v !== null && v !== "" && !skip.has(k))
+    .map(([k, v]) => `<tr><td>${esc(k.replace(/_/g, " "))}</td><td>${esc(fmtValue(k, v))}</td></tr>`).join("");
+  let badge = "";
+  if (s.cfg.status) { const st = statusOf(p); badge = `<span class="badge" style="background:${STATUS[st]}">${esc(st)}</span>`; }
+  return `<h3>${esc(head)}</h3><div style="color:#5d6e73;margin-bottom:6px">${esc(s.meta.title)}</div>${badge}<div class="pop-scroll"><table>${rows || "<tr><td>Tidak ada atribut</td></tr>"}</table></div>`;
+}
+
+function render(s){
+  if (s.layer) map.removeLayer(s.layer);
+  const cfg = s.cfg, geom = s.meta.geom || "";
+  const isLine = /line/i.test(geom), isPoint = /point/i.test(geom);
+  const colorOf = f => cfg.status ? STATUS[statusOf(f.properties)] : cfg.color;
+  const pane = "p_" + s.meta.name;
+  if (!map.getPane(pane)) { map.createPane(pane).style.zIndex = 400 + cfg.order; }
+
+  s.layer = L.geoJSON(s.data, {
+    pane,
+    filter: f => !cfg.status || activeStatus.has(statusOf(f.properties)),
+    style: f => isLine
+      ? { color: colorOf(f), weight: cfg.weight || 3, opacity: .95 }
+      : { color: cfg.color || "#444", weight: 2, fillColor: cfg.color || "#444", fillOpacity: .05, dashArray: "6 4" },
+    pointToLayer: (f, ll) => L.circleMarker(ll, { pane, radius: cfg.radius || 5, color: "#fff", weight: 1.5, fillColor: colorOf(f), fillOpacity: 1 }),
+    onEachFeature: (f, layer) => {
+      layer.bindPopup(() => popupHtml(s, f), { maxWidth: 340 });
+      if (cfg.labelField && f.properties[cfg.labelField]) {
+        layer.bindTooltip(esc(f.properties[cfg.labelField]), { permanent: true, direction: "center", className: "zlabel" });
+      }
+      if (isLine) {
+        layer.on("mouseover", () => layer.setStyle({ weight: (cfg.weight || 3) + 3 }));
+        layer.on("mouseout",  () => layer.setStyle({ weight: cfg.weight || 3 }));
+      }
+    }
+  });
+  if (s.visible) s.layer.addTo(map);
+}
+
+function renderStats(){
+  const box = document.getElementById("stats");
+  const rows = state.filter(s => s.cfg.status).map(s => {
+    const c = { "Belum Dikerjakan": 0, "Sedang Dikerjakan": 0, "Selesai": 0 };
+    let len = 0, lenDone = 0;
+    s.data.features.forEach(f => {
+      const st = statusOf(f.properties); c[st]++;
+      if (s.cfg.lengthField) { const l = +f.properties[s.cfg.lengthField] || 0; len += l; if (st === "Selesai") lenDone += l; }
+    });
+    const total = s.data.features.length || 1;
+    const pct = Math.round(c["Selesai"] / total * 100);
+    const km = s.cfg.lengthField ? `<small>${(lenDone/1000).toFixed(2)} km dari ${(len/1000).toFixed(2)} km selesai</small>` : "";
+    return `<div class="stat"><div class="top"><span>${esc(s.meta.title)}</span><span>${c["Selesai"]} / ${s.data.features.length} (${pct}%)</span></div>
+      <div class="bar" title="Selesai ${c["Selesai"]} · Sedang ${c["Sedang Dikerjakan"]} · Belum ${c["Belum Dikerjakan"]}">
+        <i style="width:${c["Selesai"]/total*100}%;background:${STATUS["Selesai"]}"></i>
+        <i style="width:${c["Sedang Dikerjakan"]/total*100}%;background:${STATUS["Sedang Dikerjakan"]}"></i>
+      </div>${km}</div>`;
+  });
+  box.className = ""; box.innerHTML = rows.join("") || '<span class="msg">Belum ada layer dengan status pekerjaan.</span>';
+}
+
+document.querySelectorAll("input[data-s]").forEach(cb => cb.addEventListener("change", () => {
+  cb.checked ? activeStatus.add(cb.dataset.s) : activeStatus.delete(cb.dataset.s);
+  state.filter(s => s.cfg.status).forEach(render);
+}));
+
+async function init(){
+  const list = document.getElementById("list");
+  try{
+    const res = await fetch("layers.json" + bust);
+    if (!res.ok) throw new Error("layers.json tidak ditemukan. Jalankan update.bat dulu.");
+    const metas = await res.json();
+    if (!metas.length) { list.textContent = "Belum ada layer."; document.getElementById("sub").textContent = "Belum ada data"; return; }
+
+    await Promise.all(metas.map(async meta => {
+      const r = await fetch(`data/${meta.name}.geojson` + bust);
+      if (!r.ok) throw new Error(`data/${meta.name}.geojson gagal dimuat`);
+      const base = CONFIG[meta.name] || { order: 9, color: "#33658a", visible: true };
+      const cfg = Object.assign({ visible: true }, base);
+      state.push({ meta, cfg, data: await r.json(), visible: cfg.visible });
+    }));
+    state.sort((a, b) => a.cfg.order - b.cfg.order);
+    state.forEach(render);
+
+    list.className = ""; list.textContent = "";
+    state.forEach(s => {
+      const kind = /line/i.test(s.meta.geom) ? "line" : /point/i.test(s.meta.geom) ? "" : "area";
+      const color = s.cfg.status ? "var(--accent)" : (s.cfg.color || "#33658a");
+      const label = document.createElement("label");
+      label.className = "row";
+      label.innerHTML = `<input type="checkbox" ${s.visible ? "checked" : ""}><span class="sw ${kind}" style="background:${color};border-color:${color}"></span><span>${esc(s.meta.title)}</span><span class="n">${s.data.features.length}</span>`;
+      label.querySelector("input").addEventListener("change", e => {
+        s.visible = e.target.checked;
+        s.visible ? s.layer.addTo(map) : map.removeLayer(s.layer);
+      });
+      list.appendChild(label);
+    });
+
+    const fit = () => {
+      const g = L.featureGroup(state.filter(s => s.layer).map(s => s.layer));
+      const b = g.getBounds();
+      if (b.isValid()) map.fitBounds(b, { padding: [30, 30] });
+    };
+    fit();
+    const btn = document.getElementById("fitAll"); btn.hidden = false; btn.onclick = fit;
+
+    renderStats();
+    const latest = state.flatMap(s => s.data.features.map(f => f.properties.updated_at)).filter(Boolean).sort().pop();
+    document.getElementById("sub").textContent = latest
+      ? "Data terakhir diubah " + new Date(latest).toLocaleDateString("id-ID", { dateStyle: "long" })
+      : `${state.length} layer`;
+  } catch (err) {
+    list.textContent = "Gagal memuat data: " + err.message;
+    document.getElementById("stats").textContent = "-";
+    document.getElementById("sub").textContent = "Terjadi kesalahan";
+  }
+}
+init();
+</script>
+</body>
+</html>
