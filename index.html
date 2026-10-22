@@ -2,262 +2,466 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Monitoring Sewerage Installation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Monitoring pipa sewerage CWIS 06</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
 <style>
-  :root{
-    --bg:#f4f6f5; --panel:#ffffff; --ink:#1b2a2e; --muted:#5d6e73; --line:#d8dfdd; --accent:#0d6b73;
-    --belum:#8d989c; --sedang:#e59d0e; --selesai:#1e9b57;
-  }
-  @media (prefers-color-scheme: dark){
-    :root{ --bg:#12181a; --panel:#1b2326; --ink:#e5ecea; --muted:#92a2a7; --line:#2c373b; --accent:#58c4cc; }
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%;margin:0}
-  body{font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);display:flex}
-  aside{width:340px;max-width:100%;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;z-index:1000;overflow:auto}
-  header{padding:18px 18px 14px;border-bottom:1px solid var(--line)}
-  h1{font-size:19px;font-weight:600;margin:0 0 3px;line-height:1.25}
-  header p{margin:0;font-size:13px;color:var(--muted)}
-  .sec{padding:14px 18px;border-bottom:1px solid var(--line)}
-  .sec h2{font-size:14px;font-weight:600;margin:0 0 10px}
-  select{width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
-  .row{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:14px;cursor:pointer}
-  .row input{accent-color:var(--accent);width:16px;height:16px;margin:0;flex:none}
-  .row .n{margin-left:auto;color:var(--muted);font-size:12px}
-  .dot{width:12px;height:12px;border-radius:50%;flex:none;border:2px solid #fff;box-shadow:0 0 0 1px var(--line)}
-  .sw{width:14px;height:14px;border-radius:3px;flex:none}
-  .sw.line{height:4px;border-radius:2px}
-  .sw.area{background:transparent!important;border:2px solid}
-  .stat{margin:0 0 14px}
-  .stat:last-child{margin:0}
-  .stat .top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
-  .stat .top span:last-child{color:var(--muted)}
-  .bar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--line)}
-  .bar i{display:block;height:100%}
-  .stat small{display:block;margin-top:4px;font-size:12px;color:var(--muted)}
-  .msg{font-size:13px;color:var(--muted);line-height:1.5}
-  #map{flex:1;height:100%}
-  .leaflet-popup-content{font-family:inherit;font-size:13px;margin:12px 14px;color:#1b2a2e}
-  .leaflet-popup-content h3{margin:0 0 4px;font-size:15px}
-  .badge{display:inline-block;padding:2px 8px;border-radius:10px;color:#fff;font-size:12px;margin-bottom:8px}
-  .leaflet-popup-content table{border-collapse:collapse;width:100%}
-  .leaflet-popup-content td{padding:3px 0;vertical-align:top;border-top:1px solid #e3e7e5}
-  .leaflet-popup-content td:first-child{color:#5d6e73;padding-right:12px;white-space:nowrap}
-  .pop-scroll{max-height:230px;overflow:auto}
-  .zlabel{background:rgba(255,255,255,.85);border:0;box-shadow:none;color:#0d6b73;font-weight:600;font-size:12px;padding:1px 6px}
-  button.fit{margin-top:10px;width:100%;padding:8px;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:6px;font:inherit;cursor:pointer}
-  button.fit:hover{background:var(--accent);color:var(--panel)}
-  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  @media (max-width:720px){
-    body{flex-direction:column-reverse}
-    aside{width:100%;height:46%;border-right:0;border-top:1px solid var(--line)}
-    #map{height:54%}
-  }
+:root{--bg:#f2f2ed;--panel:#f6f6f1;--card:#fff;--ink:#17212b;--muted:#68757c;--line:#dcdcd4;--dark:#1d2830;--accent:#0f8b8d;--ok:#1f9d57}
+html[data-theme=dark]{--bg:#161d21;--panel:#1b2429;--card:#222d33;--ink:#e8eeec;--muted:#93a3a9;--line:#313e44;--dark:#e8eeec;--accent:#4cc3c5}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;font-size:14px}
+.top{display:flex;align-items:center;gap:28px;padding:10px 18px;background:var(--bg);border-bottom:1px solid var(--line);padding-top:max(10px,env(safe-area-inset-top))}
+.brand small{display:block;font-size:12px;color:var(--muted)}
+.brand h1{margin:0;font-size:21px;font-weight:700;line-height:1.15}
+.meta{font-size:13px;color:var(--muted);white-space:nowrap}
+.meta b{color:var(--ink);font-size:15px;font-weight:600;margin-left:6px}
+.btns{margin-left:auto;display:flex;gap:8px}
+button{font:inherit;color:var(--ink);cursor:pointer}
+.tb{padding:8px 16px;border:1px solid var(--line);background:var(--card);border-radius:6px}
+.shell{flex:1;display:flex;min-height:0;position:relative}
+aside{width:360px;flex:none;background:var(--panel);border-right:1px solid var(--line);overflow:auto;padding:16px 18px 28px;z-index:1100}
+aside.off{display:none}
+main{flex:1;position:relative;min-width:0}
+#map{position:absolute;inset:0}
+h2{font-size:17px;font-weight:700;margin:22px 0 10px}
+.search{position:relative}
+.search input{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);font:inherit;font-size:15px}
+.hint{font-size:12px;color:var(--muted);margin:6px 0 0}
+.res{position:absolute;left:0;right:0;top:50px;background:var(--card);border:1px solid var(--line);border-radius:6px;z-index:5;max-height:300px;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.res button{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 12px;border-bottom:1px solid var(--line)}
+.res button:hover{background:var(--panel)}
+.res small{display:block;color:var(--muted);font-size:12px}
+.seg{display:flex;background:var(--line);border-radius:8px;padding:3px}
+.seg button{flex:1;border:0;background:none;padding:9px;border-radius:6px;font-weight:500}
+.seg button.on{background:var(--dark);color:var(--card)}
+details{border-top:1px solid var(--line);margin-top:16px;padding-top:12px}
+summary{font-size:16px;font-weight:700;cursor:pointer;padding-bottom:4px}
+.row{display:flex;align-items:center;gap:10px;padding:6px 0;cursor:pointer}
+.row input{accent-color:var(--accent);width:16px;height:16px;margin:0}
+.big{font-size:44px;font-weight:700;line-height:1;margin:2px 0 10px}
+.cap{font-size:13px;color:var(--muted)}
+.bar{height:20px;border:1px solid var(--line);border-radius:10px;background:var(--card);overflow:hidden;margin-bottom:14px}
+.bar i{display:block;height:100%;background:var(--ok);width:0}
+.kv{display:flex;justify-content:space-between;padding:4px 0;color:var(--muted)}
+.kv b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label.f{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+select{width:100%;padding:9px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);font:inherit}
+.reset{width:100%;padding:9px;border:1px solid var(--line);background:var(--card);border-radius:6px}
+.zone{display:block;width:100%;text-align:left;border:1px solid transparent;background:none;border-radius:6px;padding:7px 8px}
+.zone:hover,.zone.on{background:var(--card);border-color:var(--line)}
+.zone .t{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.zone .t span:last-child{color:var(--muted)}
+.mini{height:6px;background:var(--line);border-radius:3px;margin-top:5px;overflow:hidden}
+.mini i{display:block;height:100%;background:var(--ok)}
+table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:6px 4px;text-align:right;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:500}
+.legend{position:absolute;left:14px;bottom:26px;z-index:900;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;width:260px;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.12)}
+.legend .li{display:flex;align-items:center;gap:8px;padding:4px 0}
+.legend .note{color:var(--muted);font-size:12px;margin-top:6px}
+.sw{width:14px;height:14px;border-radius:50%;flex:none;border:2px solid #fff;box-shadow:0 0 0 1px #8a979c}
+.ln{width:22px;height:5px;border-radius:3px;flex:none}
+.leaflet-popup-content{font-family:inherit;font-size:13px;margin:12px 14px;color:#17212b}
+.leaflet-popup-content h3{margin:0 0 2px;font-size:15px}
+.leaflet-popup-content table{font-size:13px}
+.leaflet-popup-content td{padding:3px 0;vertical-align:top;border-color:#e3e7e5}
+.leaflet-popup-content td:first-child{color:#68757c;padding-right:12px;white-space:nowrap}
+.badge{display:inline-block;padding:2px 9px;border-radius:10px;color:#fff;font-size:12px;margin:4px 0 8px}
+.pop-scroll{max-height:230px;overflow:auto}
+.zlabel{background:none;border:0;box-shadow:none;color:#2b2150;font-weight:700;font-size:12px;text-shadow:0 0 3px #fff,0 0 3px #fff}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:820px){
+  .meta{display:none}
+  .brand h1{font-size:17px}
+  aside{position:absolute;inset:0 auto 0 0;width:min(92%,360px);box-shadow:8px 0 24px rgba(0,0,0,.25)}
+  .legend{width:220px;bottom:12px}
+}
 </style>
 </head>
 <body>
-<aside>
-  <header>
-    <h1>Monitoring Sewerage Installation</h1>
-    <p id="sub">Memuat data…</p>
-  </header>
+<header class="top">
+  <div class="brand"><small>Paket CWIS 06</small><h1>Monitoring pipa sewerage</h1></div>
+  <div class="meta">Lokasi<b>Banjardowo dan Genuksari</b></div>
+  <div class="meta">Data diperbarui<b id="mUpd">–</b></div>
+  <div class="meta">Panjang tergambar<b id="mLen">–</b></div>
+  <div class="btns">
+    <button class="tb" id="bLegend">Legenda</button>
+    <button class="tb" id="bPanel">Panel</button>
+    <button class="tb" id="bTheme">Tema</button>
+  </div>
+</header>
 
-  <div class="sec">
-    <h2>Progres pekerjaan</h2>
-    <div id="stats" class="msg">Memuat…</div>
+<div class="shell">
+<aside id="panel">
+  <div class="search">
+    <input id="q" type="search" placeholder="Cari MHJ_06_0773, MH_06_…, nama" autocomplete="off" aria-label="Cari">
+    <div class="res" id="res" hidden></div>
+  </div>
+  <p class="hint">Tekan / untuk mencari. Pencarian mencakup semua atribut.</p>
+
+  <h2>Tampilan peta</h2>
+  <div class="seg" id="seg"><button data-v="metode" class="on">Metode</button><button data-v="progres">Progres</button></div>
+
+  <details><summary>Layer peta</summary><div id="layerList"></div></details>
+  <details><summary>Peta dasar</summary>
+    <label class="row"><input type="radio" name="bm" value="osm" checked>OpenStreetMap</label>
+    <label class="row"><input type="radio" name="bm" value="sat">Citra satelit</label>
+    <label class="row"><input type="radio" name="bm" value="light">Terang polos</label>
+  </details>
+
+  <h2>Progres pipa</h2>
+  <div class="cap">Berbobot panjang gambar</div>
+  <div class="big" id="pct">0%</div>
+  <div class="bar"><i id="barFill"></i></div>
+  <div class="kv"><span>Panjang tergambar</span><b id="sLen">–</b></div>
+  <div class="kv"><span>Terpasang setara</span><b id="sEq">–</b></div>
+  <div class="kv"><span>Ruas pipa</span><b id="sRuas">–</b></div>
+  <div class="kv"><span>Manhole selesai</span><b id="sMh">–</b></div>
+  <div class="kv"><span>Inspection chamber selesai</span><b id="sIc">–</b></div>
+  <p class="hint">Terpasang setara = pipa selesai penuh + pipa berjalan dihitung 50%.</p>
+
+  <h2>Filter</h2>
+  <div class="grid2">
+    <div><label class="f" for="fZona">Zona</label><select id="fZona"><option value="">Semua</option></select></div>
+    <div><label class="f" for="fKelas">Kelas pipa</label><select id="fKelas"><option value="">Semua</option></select></div>
+  </div>
+  <div class="grid2" style="margin-top:12px">
+    <div><label class="f" for="fStatus">Status</label>
+      <select id="fStatus"><option value="">Semua</option><option>Belum Dikerjakan</option><option>Sedang Dikerjakan</option><option>Selesai</option></select></div>
+    <div style="display:flex;align-items:flex-end"><button class="reset" id="bReset">Reset</button></div>
   </div>
 
-  <div class="sec">
-    <h2>Tampilkan status</h2>
-    <label class="row"><input type="checkbox" data-s="Belum Dikerjakan" checked><span class="dot" style="background:var(--belum)"></span>Belum dikerjakan</label>
-    <label class="row"><input type="checkbox" data-s="Sedang Dikerjakan" checked><span class="dot" style="background:var(--sedang)"></span>Sedang dikerjakan</label>
-    <label class="row"><input type="checkbox" data-s="Selesai" checked><span class="dot" style="background:var(--selesai)"></span>Selesai</label>
-  </div>
+  <h2>Progres per zona</h2>
+  <p class="hint" style="margin:-4px 0 8px">Klik zona untuk memfilter dan memperbesar peta.</p>
+  <div id="zones"></div>
 
-  <div class="sec">
-    <h2>Layer</h2>
-    <div id="list" class="msg">Memuat daftar layer…</div>
-    <button class="fit" id="fitAll" hidden>Zoom ke semua layer</button>
-  </div>
-
-  <div class="sec">
-    <h2>Peta dasar</h2>
-    <select id="basemap" aria-label="Peta dasar">
-      <option value="osm">OpenStreetMap</option>
-      <option value="sat">Citra satelit</option>
-      <option value="light">Terang polos</option>
-    </select>
-  </div>
+  <h2>Kelas dan metode</h2>
+  <table><thead><tr><th>Kelas, metode</th><th>Ruas</th><th>km</th><th>%</th></tr></thead><tbody id="klass"></tbody></table>
 </aside>
-<div id="map"></div>
+<main><div id="map"></div><div class="legend" id="legend"></div></main>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
-const STATUS = {
-  "Belum Dikerjakan": "#8d989c",
-  "Sedang Dikerjakan": "#e59d0e",
-  "Selesai": "#1e9b57"
+// ====== Pengaturan ======
+const STATUS_UI = {
+  "Belum Dikerjakan": { label: "Belum mulai", color: "#9aa4a8" },
+  "Sedang Dikerjakan": { label: "Berjalan", color: "#e3a008" },
+  "Selesai": { label: "Selesai", color: "#1f9d57" }
 };
-const DEFAULT_STATUS = "Belum Dikerjakan";
-
-// Urutan tumpukan (kecil = di bawah) dan gaya per layer. Layer baru yang tidak
-// terdaftar di sini tetap tampil dengan gaya standar.
-const CONFIG = {
-  batas_zona:         { order: 1, color: "#0d6b73", labelField: "nama", visible: true },
-  batas_rw:           { order: 2, color: "#7b5ea7", visible: false },
-  collecting_pipe:    { order: 3, status: true, weight: 2 },
-  pipe:               { order: 4, status: true, weight: 4, lengthField: "panjang_m" },
-  inspection_chamber: { order: 5, status: true, radius: 4 },
-  manhole:            { order: 6, status: true, radius: 6 }
-};
+const METODE_COLOR = { "Jacking": "#e8590c", "Open Trench": "#0f8b8d" };
+const WEIGHT_BERJALAN = 0.5;             // bobot pipa "Berjalan" untuk "Terpasang setara"
+const PANES = { rw: 405, zona: 410, persil: 420, pipe: 430, ic: 440, manhole: 450 };
 const bust = "?t=" + Date.now();
 
-const map = L.map("map").setView([-6.97, 110.46], 14);
+// ====== Util ======
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nf = (n, d = 2) => Number(n).toLocaleString("id-ID", { minimumFractionDigits: d, maximumFractionDigits: d });
+const zoneKey = v => (String(v ?? "").match(/\d+/) || [""])[0];
+const statusOf = p => (p && STATUS_UI[p.status_pekerjaan]) ? p.status_pekerjaan : "Belum Dikerjakan";
+const credit = st => st === "Selesai" ? 1 : st === "Sedang Dikerjakan" ? WEIGHT_BERJALAN : 0;
+const lenOf = p => +p.panjang_m || 0;
+const classWeight = k => { const m = /(\d+)\s+(\d+)\s*-\s*(\d+)/.exec(k || ""); return Math.min(1.8 + 0.8 * (m ? +m[2] : 1), 7); };
+
+// ====== Tema & panel ======
+const root = document.documentElement;
+let theme = null; try { theme = localStorage.getItem("theme"); } catch (e) {}
+if (!theme) theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+root.dataset.theme = theme;
+$("bTheme").onclick = () => {
+  theme = theme === "dark" ? "light" : "dark"; root.dataset.theme = theme;
+  try { localStorage.setItem("theme", theme); } catch (e) {}
+};
+if (innerWidth <= 820) $("panel").classList.add("off");
+$("bPanel").onclick = () => { $("panel").classList.toggle("off"); setTimeout(() => map.invalidateSize(), 50); };
+$("bLegend").onclick = () => { const l = $("legend"); l.style.display = l.style.display === "none" ? "" : "none"; };
+
+// ====== Peta ======
+const map = L.map("map", { zoomControl: false }).setView([-6.97, 110.46], 14);
+L.control.zoom({ position: "topright" }).addTo(map);
 const bases = {
   osm: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }),
   sat: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19, attribution: "Esri World Imagery" }),
   light: L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", { maxZoom: 19, attribution: "© OpenStreetMap, © CARTO" })
 };
-let currentBase = bases.osm.addTo(map);
-document.getElementById("basemap").addEventListener("change", e => {
-  map.removeLayer(currentBase);
-  currentBase = bases[e.target.value].addTo(map);
-  currentBase.bringToBack();
+let base = bases.osm.addTo(map);
+document.querySelectorAll("input[name=bm]").forEach(r => r.onchange = () => {
+  map.removeLayer(base); base = bases[r.value].addTo(map); base.bringToBack();
+});
+Object.entries(PANES).forEach(([k, z]) => { map.createPane("pane_" + k).style.zIndex = z; });
+
+// ====== Data & state ======
+const D = {};
+const fc = n => D[n] || { type: "FeatureCollection", features: [] };
+const G = {};
+const vis = { zona: true, rw: false, persil: true, pipe: true, ic: true, manhole: true };
+const filters = { zona: "", kelas: "", status: "" };
+let view = "metode";
+let junction = () => false;
+
+function popupHtml(f, title) {
+  const p = f.properties || {};
+  const head = p.kode || (p.mh_hulu ? `${p.mh_hulu} → ${p.mh_hilir || "?"}` : null) || p.nama || (p.nomor_ic ? "IC " + p.nomor_ic : title);
+  const skip = new Set(["id", "status_pekerjaan"]);
+  const fmt = v => {
+    if (typeof v === "number") return nf(v, Number.isInteger(v) ? 0 : 3);
+    if (/^\d{4}-\d{2}-\d{2}T/.test(v)) return new Date(v).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" });
+    if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return new Date(v + "T00:00:00").toLocaleDateString("id-ID", { dateStyle: "medium" });
+    return String(v);
+  };
+  const rows = Object.entries(p).filter(([k, v]) => v !== null && v !== "" && !skip.has(k))
+    .map(([k, v]) => `<tr><td>${esc(k.replace(/_/g, " "))}</td><td>${esc(fmt(v))}</td></tr>`).join("");
+  const st = p.status_pekerjaan ? STATUS_UI[statusOf(p)] : null;
+  const badge = st ? `<span class="badge" style="background:${st.color}">${esc(st.label)}</span>` : "";
+  return `<h3>${esc(head)}</h3><div class="cap">${esc(title)}</div>${badge}<div class="pop-scroll"><table>${rows || "<tr><td>Tidak ada atribut</td></tr>"}</table></div>`;
+}
+
+function pass(f, kind) {
+  const p = f.properties;
+  if (filters.zona && p.zona !== undefined && zoneKey(p.zona) !== filters.zona) return false;
+  if (filters.status && statusOf(p) !== filters.status) return false;
+  if (kind === "pipe" && filters.kelas && p.kelas_pipa !== filters.kelas) return false;
+  return true;
+}
+
+function put(key, layer) {
+  if (G[key]) map.removeLayer(G[key]);
+  G[key] = layer;
+  if (vis[key]) layer.addTo(map);
+}
+
+function drawStatic() {
+  put("zona", L.geoJSON(fc("batas_zona"), {
+    pane: "pane_zona",
+    style: { color: "#6d3fc0", weight: 2, dashArray: "6 5", fillColor: "#6d3fc0", fillOpacity: .06 },
+    onEachFeature: (f, l) => {
+      l.bindTooltip(esc(f.properties.nama || ""), { permanent: true, direction: "center", className: "zlabel" });
+      l.on("click", () => setZone(zoneKey(f.properties.nama)));
+    }
+  }));
+  put("rw", L.geoJSON(fc("batas_rw"), {
+    pane: "pane_rw",
+    style: { color: "#8a6bb8", weight: 1.5, fillOpacity: .02 },
+    onEachFeature: (f, l) => l.bindTooltip(esc(f.properties.nama || ""), { sticky: true })
+  }));
+}
+
+function drawDynamic() {
+  const m = view === "metode";
+  const stCol = f => STATUS_UI[statusOf(f.properties)].color;
+  const mk = feats => ({ type: "FeatureCollection", features: feats });
+
+  put("persil", L.geoJSON(mk(fc("collecting_pipe").features.filter(f => pass(f))), {
+    pane: "pane_persil",
+    style: f => ({ color: m ? "#97a3a8" : stCol(f), weight: 1.5, opacity: .9, dashArray: m ? "4 3" : null }),
+    onEachFeature: (f, l) => l.bindPopup(() => popupHtml(f, "Pipa persil"), { maxWidth: 340 })
+  }));
+
+  const pipeStyle = f => ({
+    color: m ? (METODE_COLOR[f.properties.metode] || "#7a8a90") : stCol(f),
+    weight: classWeight(f.properties.kelas_pipa), opacity: .95, lineCap: "round"
+  });
+  put("pipe", L.geoJSON(mk(fc("pipe").features.filter(f => pass(f, "pipe"))), {
+    pane: "pane_pipe", style: pipeStyle,
+    onEachFeature: (f, l) => {
+      l.bindPopup(() => popupHtml(f, "Ruas pipa"), { maxWidth: 340 });
+      l.on("mouseover", () => l.setStyle({ weight: pipeStyle(f).weight + 3 }));
+      l.on("mouseout", () => l.setStyle({ weight: pipeStyle(f).weight }));
+    }
+  }));
+
+  put("ic", L.geoJSON(mk(fc("inspection_chamber").features.filter(f => pass(f))), {
+    pane: "pane_ic",
+    pointToLayer: (f, ll) => L.circleMarker(ll, { pane: "pane_ic", radius: m ? 3 : 4, weight: 1,
+      color: m ? "#5f6f75" : "#fff", fillColor: m ? "#eef1ef" : stCol(f), fillOpacity: 1 }),
+    onEachFeature: (f, l) => l.bindPopup(() => popupHtml(f, "Inspection chamber"), { maxWidth: 340 })
+  }));
+
+  put("manhole", L.geoJSON(mk(fc("manhole").features.filter(f => pass(f))), {
+    pane: "pane_manhole",
+    pointToLayer: (f, ll) => {
+      const j = m && junction(f.geometry.coordinates);
+      return L.circleMarker(ll, { pane: "pane_manhole", radius: j ? 6 : m ? 3.5 : 5, weight: 1.5,
+        color: j ? "#fff" : m ? "#33444b" : "#fff",
+        fillColor: j ? "#7b3fe4" : m ? "#ffffff" : stCol(f), fillOpacity: 1 });
+    },
+    onEachFeature: (f, l) => l.bindPopup(() => popupHtml(f, "Manhole"), { maxWidth: 340 })
+  }));
+}
+
+// ====== Panel: statistik ======
+function renderStats() {
+  const pipes = fc("pipe").features.filter(f => pass(f, "pipe"));
+  let len = 0, eq = 0;
+  pipes.forEach(f => { const l = lenOf(f.properties); len += l; eq += l * credit(statusOf(f.properties)); });
+  const pct = len ? eq / len * 100 : 0;
+  $("pct").textContent = nf(pct, 1) + "%";
+  $("barFill").style.width = pct + "%";
+  $("sLen").textContent = nf(len / 1000) + " km";
+  $("sEq").textContent = nf(eq / 1000) + " km";
+  $("sRuas").textContent = nf(pipes.length, 0);
+  const cnt = n => { const a = fc(n).features.filter(f => pass(f)); return `${nf(a.filter(f => statusOf(f.properties) === "Selesai").length, 0)} / ${nf(a.length, 0)}`; };
+  $("sMh").textContent = cnt("manhole");
+  $("sIc").textContent = cnt("inspection_chamber");
+  $("mLen").textContent = nf(len / 1000) + " km";
+
+  const all = fc("pipe").features.filter(f => (!filters.kelas || f.properties.kelas_pipa === filters.kelas) && (!filters.status || statusOf(f.properties) === filters.status));
+  const zn = fc("batas_zona").features.map(f => f.properties.nama).filter(Boolean).sort((a, b) => zoneKey(a) - zoneKey(b));
+  $("zones").innerHTML = zn.map(name => {
+    const k = zoneKey(name); let l = 0, e = 0;
+    all.filter(f => zoneKey(f.properties.zona) === k).forEach(f => { const x = lenOf(f.properties); l += x; e += x * credit(statusOf(f.properties)); });
+    const pc = l ? e / l * 100 : 0;
+    return `<button class="zone ${filters.zona === k ? "on" : ""}" data-z="${esc(k)}"><div class="t"><span>${esc(name.replace(/zona/i, "Zona"))}</span><span>${nf(l / 1000)} km · ${nf(pc, 1)}%</span></div><div class="mini"><i style="width:${pc}%"></i></div></button>`;
+  }).join("") || '<div class="hint">Belum ada data zona.</div>';
+  document.querySelectorAll(".zone").forEach(b => b.onclick = () => setZone(b.dataset.z));
+
+  const g = {};
+  pipes.forEach(f => {
+    const p = f.properties, k = `${p.kelas_pipa || "-"}, ${p.metode || "-"}`;
+    const o = g[k] || (g[k] = { n: 0, l: 0, e: 0 });
+    const x = lenOf(p); o.n++; o.l += x; o.e += x * credit(statusOf(p));
+  });
+  $("klass").innerHTML = Object.entries(g).sort((a, b) => b[1].l - a[1].l)
+    .map(([k, o]) => `<tr><td>${esc(k)}</td><td>${o.n}</td><td>${nf(o.l / 1000)}</td><td>${o.l ? nf(o.e / o.l * 100, 0) : 0}%</td></tr>`).join("");
+}
+
+function renderLegend() {
+  const li = (sw, t) => `<div class="li">${sw}<span>${t}</span></div>`;
+  const ln = c => `<span class="ln" style="background:${c}"></span>`;
+  const dot = (bg, bd) => `<span class="sw" style="background:${bg};${bd ? "box-shadow:0 0 0 1px " + bd : ""}"></span>`;
+  let h = "";
+  if (view === "metode") {
+    h += li(ln(METODE_COLOR["Jacking"]), "Jacking") + li(ln(METODE_COLOR["Open Trench"]), "Open Trench");
+    h += li(dot("#7b3fe4"), "Manhole di sambungan kedua metode") + li(dot("#fff", "#33444b"), "Manhole lain");
+  } else {
+    h += Object.values(STATUS_UI).map(s => li(ln(s.color), s.label)).join("");
+  }
+  h += li('<span class="ln" style="background:#97a3a8;height:2px"></span>', "Pipa persil") + li(dot("#eef1ef", "#5f6f75"), "Inspection chamber");
+  h += '<div class="note">Tebal garis menunjukkan kelas pipa.</div>';
+  $("legend").innerHTML = h;
+}
+
+function redraw() { drawDynamic(); renderStats(); renderLegend(); }
+
+// ====== Interaksi ======
+function fitAll() {
+  const b = L.featureGroup([G.zona, G.pipe].filter(Boolean)).getBounds();
+  if (b.isValid()) map.fitBounds(b, { padding: [30, 30] });
+}
+function setZone(k) {
+  filters.zona = filters.zona === k ? "" : k;
+  $("fZona").value = filters.zona;
+  redraw();
+  if (filters.zona) {
+    const z = fc("batas_zona").features.find(f => zoneKey(f.properties.nama) === filters.zona);
+    if (z) map.fitBounds(L.geoJSON(z).getBounds(), { padding: [30, 30] });
+  } else fitAll();
+}
+$("fZona").onchange = e => { filters.zona = ""; if (e.target.value) setZone(e.target.value); else { redraw(); fitAll(); } };
+$("fKelas").onchange = e => { filters.kelas = e.target.value; redraw(); };
+$("fStatus").onchange = e => { filters.status = e.target.value; redraw(); };
+$("bReset").onclick = () => {
+  filters.zona = filters.kelas = filters.status = "";
+  ["fZona", "fKelas", "fStatus"].forEach(i => $(i).value = "");
+  redraw(); fitAll();
+};
+$("seg").querySelectorAll("button").forEach(b => b.onclick = () => {
+  view = b.dataset.v;
+  $("seg").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  redraw();
 });
 
-const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const statusOf = p => (p && STATUS[p.status_pekerjaan]) ? p.status_pekerjaan : DEFAULT_STATUS;
-const activeStatus = new Set(Object.keys(STATUS));
-const state = [];   // {meta, cfg, data, layer, visible}
-
-function fmtValue(k, v){
-  if (typeof v === "number") return Number.isInteger(v) ? String(v) : String(Math.round(v * 1000) / 1000);
-  if (/^\d{4}-\d{2}-\d{2}T/.test(v)) return new Date(v).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" });
-  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return new Date(v + "T00:00:00").toLocaleDateString("id-ID", { dateStyle: "medium" });
-  return String(v);
-}
-
-function popupHtml(s, f){
-  const p = f.properties || {};
-  const head = p.kode || (p.mh_hulu ? `${p.mh_hulu} → ${p.mh_hilir || "?"}` : null) || p.nama || (p.nomor_ic ? "IC " + p.nomor_ic : null) || s.meta.title;
-  const skip = new Set(["id", "status_pekerjaan"]);
-  const rows = Object.entries(p)
-    .filter(([k, v]) => v !== null && v !== "" && !skip.has(k))
-    .map(([k, v]) => `<tr><td>${esc(k.replace(/_/g, " "))}</td><td>${esc(fmtValue(k, v))}</td></tr>`).join("");
-  let badge = "";
-  if (s.cfg.status) { const st = statusOf(p); badge = `<span class="badge" style="background:${STATUS[st]}">${esc(st)}</span>`; }
-  return `<h3>${esc(head)}</h3><div style="color:#5d6e73;margin-bottom:6px">${esc(s.meta.title)}</div>${badge}<div class="pop-scroll"><table>${rows || "<tr><td>Tidak ada atribut</td></tr>"}</table></div>`;
-}
-
-function render(s){
-  if (s.layer) map.removeLayer(s.layer);
-  const cfg = s.cfg, geom = s.meta.geom || "";
-  const isLine = /line/i.test(geom), isPoint = /point/i.test(geom);
-  const colorOf = f => cfg.status ? STATUS[statusOf(f.properties)] : cfg.color;
-  const pane = "p_" + s.meta.name;
-  if (!map.getPane(pane)) { map.createPane(pane).style.zIndex = 400 + cfg.order; }
-
-  s.layer = L.geoJSON(s.data, {
-    pane,
-    filter: f => !cfg.status || activeStatus.has(statusOf(f.properties)),
-    style: f => isLine
-      ? { color: colorOf(f), weight: cfg.weight || 3, opacity: .95 }
-      : { color: cfg.color || "#444", weight: 2, fillColor: cfg.color || "#444", fillOpacity: .05, dashArray: "6 4" },
-    pointToLayer: (f, ll) => L.circleMarker(ll, { pane, radius: cfg.radius || 5, color: "#fff", weight: 1.5, fillColor: colorOf(f), fillOpacity: 1 }),
-    onEachFeature: (f, layer) => {
-      layer.bindPopup(() => popupHtml(s, f), { maxWidth: 340 });
-      if (cfg.labelField && f.properties[cfg.labelField]) {
-        layer.bindTooltip(esc(f.properties[cfg.labelField]), { permanent: true, direction: "center", className: "zlabel" });
-      }
-      if (isLine) {
-        layer.on("mouseover", () => layer.setStyle({ weight: (cfg.weight || 3) + 3 }));
-        layer.on("mouseout",  () => layer.setStyle({ weight: cfg.weight || 3 }));
-      }
-    }
+// ====== Pencarian ======
+let index = [];
+function buildIndex() {
+  const add = (name, title, label) => fc(name).features.forEach(f => {
+    const p = f.properties;
+    index.push({ f, title, label: label(p), text: Object.values(p).filter(v => v !== null && v !== "").join(" ").toLowerCase() });
   });
-  if (s.visible) s.layer.addTo(map);
+  add("manhole", "Manhole", p => p.kode || "Manhole");
+  add("pipe", "Ruas pipa", p => `${p.mh_hulu || "?"} → ${p.mh_hilir || "?"}`);
+  add("inspection_chamber", "Inspection chamber", p => "IC " + (p.nomor_ic ?? p.id));
 }
-
-function renderStats(){
-  const box = document.getElementById("stats");
-  const rows = state.filter(s => s.cfg.status).map(s => {
-    const c = { "Belum Dikerjakan": 0, "Sedang Dikerjakan": 0, "Selesai": 0 };
-    let len = 0, lenDone = 0;
-    s.data.features.forEach(f => {
-      const st = statusOf(f.properties); c[st]++;
-      if (s.cfg.lengthField) { const l = +f.properties[s.cfg.lengthField] || 0; len += l; if (st === "Selesai") lenDone += l; }
-    });
-    const total = s.data.features.length || 1;
-    const pct = Math.round(c["Selesai"] / total * 100);
-    const km = s.cfg.lengthField ? `<small>${(lenDone/1000).toFixed(2)} km dari ${(len/1000).toFixed(2)} km selesai</small>` : "";
-    return `<div class="stat"><div class="top"><span>${esc(s.meta.title)}</span><span>${c["Selesai"]} / ${s.data.features.length} (${pct}%)</span></div>
-      <div class="bar" title="Selesai ${c["Selesai"]} · Sedang ${c["Sedang Dikerjakan"]} · Belum ${c["Belum Dikerjakan"]}">
-        <i style="width:${c["Selesai"]/total*100}%;background:${STATUS["Selesai"]}"></i>
-        <i style="width:${c["Sedang Dikerjakan"]/total*100}%;background:${STATUS["Sedang Dikerjakan"]}"></i>
-      </div>${km}</div>`;
+function goTo(item) {
+  const f = item.f, g = f.geometry;
+  let ll;
+  if (g.type === "Point") { ll = [g.coordinates[1], g.coordinates[0]]; map.setView(ll, 19); }
+  else { const b = L.geoJSON(f).getBounds(); map.fitBounds(b, { maxZoom: 19, padding: [60, 60] }); ll = b.getCenter(); }
+  L.popup({ maxWidth: 340 }).setLatLng(ll).setContent(popupHtml(f, item.title)).openOn(map);
+}
+$("q").addEventListener("input", e => {
+  const q = e.target.value.trim().toLowerCase(), box = $("res");
+  if (q.length < 2) { box.hidden = true; return; }
+  const hits = index.filter(i => i.text.includes(q)).slice(0, 8);
+  box.innerHTML = hits.length
+    ? hits.map((h, i) => `<button data-i="${i}">${esc(h.label)}<small>${esc(h.title)}</small></button>`).join("")
+    : '<button disabled>Tidak ditemukan</button>';
+  box.hidden = false;
+  box.querySelectorAll("button[data-i]").forEach(b => b.onclick = () => {
+    goTo(hits[+b.dataset.i]); box.hidden = true;
+    if (innerWidth <= 820) $("panel").classList.add("off");
   });
-  box.className = ""; box.innerHTML = rows.join("") || '<span class="msg">Belum ada layer dengan status pekerjaan.</span>';
-}
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "/" && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); $("panel").classList.remove("off"); $("q").focus(); }
+  if (e.key === "Escape") $("res").hidden = true;
+});
 
-document.querySelectorAll("input[data-s]").forEach(cb => cb.addEventListener("change", () => {
-  cb.checked ? activeStatus.add(cb.dataset.s) : activeStatus.delete(cb.dataset.s);
-  state.filter(s => s.cfg.status).forEach(render);
-}));
-
-async function init(){
-  const list = document.getElementById("list");
-  try{
-    const res = await fetch("layers.json" + bust);
-    if (!res.ok) throw new Error("layers.json tidak ditemukan. Jalankan update.bat dulu.");
-    const metas = await res.json();
-    if (!metas.length) { list.textContent = "Belum ada layer."; document.getElementById("sub").textContent = "Belum ada data"; return; }
-
-    await Promise.all(metas.map(async meta => {
-      const r = await fetch(`data/${meta.name}.geojson` + bust);
-      if (!r.ok) throw new Error(`data/${meta.name}.geojson gagal dimuat`);
-      const base = CONFIG[meta.name] || { order: 9, color: "#33658a", visible: true };
-      const cfg = Object.assign({ visible: true }, base);
-      state.push({ meta, cfg, data: await r.json(), visible: cfg.visible });
+// ====== Mulai ======
+async function init() {
+  try {
+    const r = await fetch("layers.json" + bust);
+    if (!r.ok) throw new Error("layers.json tidak ditemukan. Jalankan update.bat dulu.");
+    const metas = await r.json();
+    await Promise.all(metas.map(async m => {
+      const x = await fetch(`data/${m.name}.geojson` + bust);
+      if (!x.ok) throw new Error(`data/${m.name}.geojson gagal dimuat`);
+      D[m.name] = await x.json();
     }));
-    state.sort((a, b) => a.cfg.order - b.cfg.order);
-    state.forEach(render);
-
-    list.className = ""; list.textContent = "";
-    state.forEach(s => {
-      const kind = /line/i.test(s.meta.geom) ? "line" : /point/i.test(s.meta.geom) ? "" : "area";
-      const color = s.cfg.status ? "var(--accent)" : (s.cfg.color || "#33658a");
-      const label = document.createElement("label");
-      label.className = "row";
-      label.innerHTML = `<input type="checkbox" ${s.visible ? "checked" : ""}><span class="sw ${kind}" style="background:${color};border-color:${color}"></span><span>${esc(s.meta.title)}</span><span class="n">${s.data.features.length}</span>`;
-      label.querySelector("input").addEventListener("change", e => {
-        s.visible = e.target.checked;
-        s.visible ? s.layer.addTo(map) : map.removeLayer(s.layer);
-      });
-      list.appendChild(label);
-    });
-
-    const fit = () => {
-      const g = L.featureGroup(state.filter(s => s.layer).map(s => s.layer));
-      const b = g.getBounds();
-      if (b.isValid()) map.fitBounds(b, { padding: [30, 30] });
-    };
-    fit();
-    const btn = document.getElementById("fitAll"); btn.hidden = false; btn.onclick = fit;
-
-    renderStats();
-    const latest = state.flatMap(s => s.data.features.map(f => f.properties.updated_at)).filter(Boolean).sort().pop();
-    document.getElementById("sub").textContent = latest
-      ? "Data terakhir diubah " + new Date(latest).toLocaleDateString("id-ID", { dateStyle: "long" })
-      : `${state.length} layer`;
   } catch (err) {
-    list.textContent = "Gagal memuat data: " + err.message;
-    document.getElementById("stats").textContent = "-";
-    document.getElementById("sub").textContent = "Terjadi kesalahan";
+    $("zones").innerHTML = `<div class="hint">Gagal memuat data: ${esc(err.message)}</div>`;
+    return;
   }
+
+  // titik sambungan dua metode: manhole yang berimpit dengan ujung pipa Jacking DAN Open Trench
+  const ends = { "Jacking": new Set(), "Open Trench": new Set() };
+  const keyOf = (x, y) => y + "," + x;
+  fc("pipe").features.forEach(f => {
+    const s = ends[f.properties.metode], c = f.geometry.coordinates;
+    if (!s || !c.length) return;
+    [c[0], c[c.length - 1]].forEach(p => s.add(keyOf(Math.round(p[0] * 1e5), Math.round(p[1] * 1e5))));
+  });
+  const near = (s, c) => {
+    const x = Math.round(c[0] * 1e5), y = Math.round(c[1] * 1e5);
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) if (s.has(keyOf(x + dx, y + dy))) return true;
+    return false;
+  };
+  junction = c => near(ends["Jacking"], c) && near(ends["Open Trench"], c);
+
+  fc("batas_zona").features.map(f => f.properties.nama).filter(Boolean).sort((a, b) => zoneKey(a) - zoneKey(b))
+    .forEach(n => $("fZona").add(new Option(n.replace(/zona/i, "Zona"), zoneKey(n))));
+  [...new Set(fc("pipe").features.map(f => f.properties.kelas_pipa).filter(Boolean))].sort()
+    .forEach(k => $("fKelas").add(new Option(k, k)));
+  Array.from($("fStatus").options).forEach(o => { if (STATUS_UI[o.value]) o.textContent = STATUS_UI[o.value].label; });
+
+  const labels = [["zona", "Batas zona"], ["rw", "Batas RW"], ["persil", "Pipa persil"], ["pipe", "Pipa"], ["ic", "Inspection chamber"], ["manhole", "Manhole"]];
+  $("layerList").innerHTML = labels.map(([k, t]) =>
+    `<label class="row"><input type="checkbox" data-k="${k}" ${vis[k] ? "checked" : ""}>${t}</label>`).join("");
+  $("layerList").querySelectorAll("input").forEach(cb => cb.onchange = () => {
+    vis[cb.dataset.k] = cb.checked;
+    cb.checked ? G[cb.dataset.k].addTo(map) : map.removeLayer(G[cb.dataset.k]);
+  });
+
+  drawStatic(); redraw(); buildIndex(); fitAll();
+
+  const latest = Object.values(D).flatMap(d => d.features.map(f => f.properties.updated_at)).filter(Boolean).sort().pop();
+  $("mUpd").textContent = latest ? new Date(latest).toLocaleDateString("id-ID", { dateStyle: "long" }) : "–";
 }
 init();
 </script>
